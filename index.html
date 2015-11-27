@@ -1,0 +1,109 @@
+<html>
+  <head>
+
+    <link rel="shortcut icon" type="image/x-icon" href="https://upload.wikimedia.org/wikipedia/commons/0/01/MaverickEyes_Favicon_Image.gif"/>
+
+    <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+
+  </head>
+  <body>
+
+<style>
+
+body			{ font-family: 'Arial', sans-serif; }
+
+#thought-form		{ margin: 40px; padding-bottom: 40px; border-bottom: 1px solid gray; }
+#message-input		{ width: 100%; font-size: 24px; margin-bottom: 6px; }
+button     { padding: 20px; border-color: blue; border-width: 10px}
+
+#thoughts  { margin: 40px; }
+.thought   { margin-bottom: 1em; }
+.message   { color: #456; font-size: 40px; }
+.time      {}
+h2         { color: #897}
+
+</style>
+
+
+<script>
+
+// global functions here
+var myDataRef = new Firebase("https://shining-inferno-8813.firebaseio.com/");
+
+// gets thoughts from database and shows on screen
+function thoughtLoader() {
+
+  myDataRef.child("thoughts").orderByChild("time").once("value", function(snapshot) {
+
+    $('#thoughts').html('');
+
+    snapshot.forEach(function(childSnapshot) {  
+
+      var childData = childSnapshot.val();
+
+      var thoughtDiv;
+
+      thoughtDiv = '<div class="thought">';
+      thoughtDiv += '<div class="message">' + childData.message + '</div>';
+      thoughtDiv += '<div class="time">' + childData.time + '</div>';
+      thoughtDiv += '</div>';
+
+      $('#thoughts').prepend(thoughtDiv);
+
+    });
+
+  }, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
+
+}
+
+$(document).ready(function() {
+
+  // run thought loader on the first page load
+  thoughtLoader();
+
+  // run whenever the button is clicked
+  $('#thought-submit').click(function(){
+
+    if ($('#message-input').val() != "") {
+
+      var newMsg = new Object();
+      var now = new Date();
+
+      newMsg.message = $('#message-input').val();
+      newMsg.time = now.toISOString();
+
+      myDataRef.child("thoughts").push(newMsg);
+
+      // reload the thoughts
+      thoughtLoader();
+
+    } else {
+
+      alert('Please have something to say.');
+
+    }
+
+  });
+
+});
+
+</script>
+
+    <h1>Hello, This is my chat page!</h1>
+
+    <h2>chat</h2>
+
+    <div id="thought-form">
+	<div><textarea id="message-input" placeholder="enter your thoughts here..." rows="3"></textarea></div>
+	<div><button id="thought-submit">say</button></div>
+    </div>
+
+    <div id="thoughts">
+      loading...
+    </div>
+
+  </body>
+</html>
